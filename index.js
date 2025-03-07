@@ -20,6 +20,10 @@ app.use(express.json());
 app.use(cors());
 
 // 📌 Route: Get All Articles
+app.get("/", (req, res) => {
+  res.send("Welcome to Articles API");
+});
+
 app.get("/api/articles", async (req, res) => {
   try {
     const result = await pool.query(
