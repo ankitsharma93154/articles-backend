@@ -23,7 +23,7 @@ app.get("/", (req, res) => {
   res.send("Welcome to Articles API");
 });
 
-app.get("/api/articles", async (req, res) => {
+app.get("/articles", async (req, res) => {
   try {
     const result = await pool.query(
       "SELECT * FROM articles ORDER BY created_at DESC"
@@ -36,7 +36,7 @@ app.get("/api/articles", async (req, res) => {
 });
 
 // 📌 Route: Get Single Article by Slug
-app.get("/api/articles/:slug", async (req, res) => {
+app.get("/articles/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
     const result = await pool.query("SELECT * FROM articles WHERE slug = $1", [
