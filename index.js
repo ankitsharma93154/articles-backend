@@ -79,10 +79,10 @@ app.get("/articles/:slug", async (req, res) => {
 });
 
 // 📌 Start Server
-const PORT = 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+// const PORT = 5000;
+// app.listen(PORT, () => {
+//   console.log(`🚀 Server running on http://localhost:${PORT}`);
+// });
 
 // Export app using ES module syntax
 export default app;
