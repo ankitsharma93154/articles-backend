@@ -1,61 +1,88 @@
 import express from "express";
-import dotenv from "dotenv";
+import compression from "compression";
 import cors from "cors";
-import pkg from "pg";
+import { createClient } from "@supabase/supabase-js";
+import dotenv from "dotenv";
 
-dotenv.config();
-const { Pool } = pkg;
+dotenv.config(); // Load environment variables
+
+// Initialize Express app
 const app = express();
 
-// PostgreSQL Database Connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  timeout: 10000,
-  ssl: { rejectUnauthorized: false },
+// Middleware optimization
+app.use(compression()); // Add compression for faster response times
+app.use(cors());
+app.use(express.json({ limit: "1mb" })); // JSON parsing
+
+// Static file serving with optimized caching
+app.use(
+  express.static("public", {
+    maxAge: "1y",
+    etag: false,
+    immutable: true,
+    setHeaders: (res) => {
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    },
+  })
+);
+
+// Initialize Supabase client
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Health check endpoint
+app.get("/health", (_, res) => {
+  res.status(200).send("OK");
 });
 
-// Middleware
-app.use(express.json());
-app.use(cors());
-
-// 📌 Route: Get All Articles
+// 📌 Root Route
 app.get("/", (req, res) => {
   res.send("Welcome to Articles API");
 });
 
+// 📌 Get All Articles (Using Supabase Instead of PostgreSQL)
 app.get("/articles", async (req, res) => {
   try {
-    const result = await pool.query(
-      "SELECT * FROM articles ORDER BY created_at DESC"
-    );
-    res.json(result.rows);
+    const { data, error } = await supabase
+      .from("articles")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    res.json(data);
   } catch (err) {
-    console.error("Database Error:", err);
-    res.status(500).send("Server Error");
+    console.error("Supabase Error:", err);
+    res.status(500).json({ error: "Server Error" });
   }
 });
 
-// 📌 Route: Get Single Article by Slug
+// 📌 Get Single Article by Slug (Using Supabase)
 app.get("/articles/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
-    const result = await pool.query("SELECT * FROM articles WHERE slug = $1", [
-      slug,
-    ]);
+    const { data, error } = await supabase
+      .from("articles")
+      .select("*")
+      .eq("slug", slug)
+      .single(); // Fetch only one article
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Article not found" });
-    }
+    if (error) throw error;
+    if (!data) return res.status(404).json({ message: "Article not found" });
 
-    res.json(result.rows[0]);
+    res.json(data);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
+    console.error("Supabase Error:", err);
+    res.status(500).json({ error: "Server Error" });
   }
 });
 
-// Start Server
-// app.listen(PORT, () => {
-//   console.log(` Server running on http://localhost:${PORT}`);
-// });
+// 📌 Start Server
+const PORT = 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
+
+// Export app using ES module syntax
 export default app;
