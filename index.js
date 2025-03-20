@@ -6,7 +6,6 @@ import pkg from "pg";
 dotenv.config();
 const { Pool } = pkg;
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 // PostgreSQL Database Connection
 const pool = new Pool({
