@@ -17,6 +17,8 @@ app.use(express.static("public")); // Serve static files (articles, styles.css)
 // 📌 Health check route
 app.get("/health", (_, res) => res.status(200).send("OK"));
 
+app.get("/", (_, res) => res.status(200).send("Welcome to articles API"));
+
 // 📌 Fetch all articles (for listing on homepage)
 app.get("/articles", async (req, res) => {
   try {
