@@ -19,7 +19,7 @@ app.get("/health", (_, res) => res.status(200).send("OK"));
 
 app.get("/", (_, res) => res.status(200).send("Welcome to articles API"));
 
-// 📌 Fetch all articles (for listing on homepage)
+// 📌 Fetch all articles
 app.get("/articles", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -41,12 +41,10 @@ app.get("/articles/:slug", async (req, res) => {
   const { slug } = req.params;
   const filePath = path.join("public", "articles", `${slug}.html`);
 
-  // Serve static file if it exists
   if (fs.existsSync(filePath)) {
     return res.sendFile(filePath, { root: "." });
   }
 
-  // Otherwise, fetch from DB and generate the static file
   const { data, error } = await supabase
     .from("articles")
     .select("*")
@@ -56,12 +54,10 @@ app.get("/articles/:slug", async (req, res) => {
   if (error || !data)
     return res.status(404).json({ message: "Article not found" });
 
-  generateArticleHTML(data); // Generate and save HTML file
+  generateArticleHTML(data);
   res.sendFile(filePath, { root: "." });
 });
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () =>
-  console.log(`Server running on http://localhost:${PORT}`)
-);
+// **⬇️ Export Express as a Serverless Function**
+import { createServerlessFunction } from "vercel-express"; // Create a serverless wrapper
+export default createServerlessFunction(app);
