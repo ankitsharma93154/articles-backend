@@ -10,7 +10,36 @@ export function generateArticleHTML(article) {
         <meta name="description" content="${article.description}">
         <meta name="keywords" content="${article.tags?.join(", ")}">
         <meta name="author" content="${article.author}">
-        <link rel="stylesheet" href="/styles.css">
+       <style>
+
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
+header {
+  background: #ff9d23;
+  color: white;
+  padding: 10px;
+  text-align: center;
+}
+
+.article-image {
+  max-width: 100%;
+  height: auto;
+  margin: 10px 0;
+}
+
+footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: gray;
+}
+       </style>
     </head>
     <body>
         <header>
