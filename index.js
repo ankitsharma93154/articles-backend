@@ -58,6 +58,4 @@ app.get("/articles/:slug", async (req, res) => {
   res.sendFile(filePath, { root: "." });
 });
 
-// **⬇️ Export Express as a Serverless Function**
-import { createServerlessFunction } from "vercel-express"; // Create a serverless wrapper
-export default createServerlessFunction(app);
+module.exports = app;
