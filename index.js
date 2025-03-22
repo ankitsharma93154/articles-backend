@@ -41,21 +41,30 @@ app.get("/articles/:slug", async (req, res) => {
   const { slug } = req.params;
   const filePath = path.join("public", "articles", `${slug}.html`);
 
-  if (fs.existsSync(filePath)) {
-    return res.sendFile(filePath, { root: "." });
+  try {
+    // Try sending the static file if running locally (for debugging)
+    if (process.env.NODE_ENV !== "production" && fs.existsSync(filePath)) {
+      return res.sendFile(filePath, { root: "." });
+    }
+
+    // Fetch article from database
+    const { data, error } = await supabase
+      .from("articles")
+      .select("*")
+      .eq("slug", slug)
+      .single();
+
+    if (error || !data) {
+      return res.status(404).json({ message: "Article not found" });
+    }
+
+    // Dynamically generate the HTML without saving it to the file system
+    const htmlContent = generateArticleHTML(data);
+    res.send(htmlContent);
+  } catch (err) {
+    console.error("Error fetching article:", err);
+    res.status(500).json({ error: "Server Error" });
   }
-
-  const { data, error } = await supabase
-    .from("articles")
-    .select("*")
-    .eq("slug", slug)
-    .single();
-
-  if (error || !data)
-    return res.status(404).json({ message: "Article not found" });
-
-  generateArticleHTML(data);
-  res.sendFile(filePath, { root: "." });
 });
 
 module.exports = app;
